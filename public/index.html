@@ -1,0 +1,235 @@
+<!doctype html>
+<html>
+
+<head>
+	<title>Spotify album broswer</title>
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+	<link rel="stylesheet" href="stylesheet/style.css">
+</head>
+
+<body>
+
+	<div id="headline" class="container">
+		<div id="titleline">
+			<h1>Spotify album broswer</h1>
+		</div>
+
+		<div id="login" class="log-block">
+			<button id="login-button" class="btn btn-primary">Log in with Spotify</button>
+		</div>
+		<div id="loggedin" class="log-block">
+			<div id="user-profile">
+			</div>
+		</div>
+		<div style="clear: both"></div>
+	</div>
+	<div class="container">
+		<h3>Search for a key word</h3>
+		<form id="search-form">
+			<input type="text" id="query" value="" class="form-control" placeholder="Type a key word and click search." />
+			<input type="submit" id="search" class="btn btn-primary" value="Search" />
+		</form>
+	</div>
+	<div id="results" class="container"></div>
+	<div id="items"></div>
+
+
+	<script id="user-profile-template" type="text/x-handlebars-template">
+		<div class="media">
+			<lable>User: <span style="color: green;">{{display_name}}</span></lable>
+			<div class="pull-left">
+				<img class="media-object" style="width: 45px;" src="{{images.0.url}}" />
+			</div>
+		</div>
+	</script>
+
+	<script id="results-template" type="text/x-handlebars-template">
+		<div class="row">
+			{{#each albums.items}}
+			<div class="col-xs-6 col-sm-4 col-md-3 col-lg-2 result-item">
+				<div style="background-image:url({{images.1.url}});" data-album-id="{{id}}" class="cover"></div>
+				<div class="lable">
+					<lable>Album :</lable><span> {{name}}</span></div>
+				<div class="lable">
+					<lable>Artist:</lable><span> {{artists.0.name}}</span></div>
+			</div>
+			{{/each}}
+		</div>
+	</script>
+
+	<script id="item-template" type="text/x-handlebars-template">
+		<div style="background-image:url({{images.0.url}}); background-repeat: no-repeat;" data-album-id="{{id}}" class="item"></div>
+	</script>
+
+	<script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.1/handlebars.min.js"></script>
+	<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+
+	<script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.1/handlebars.min.js"></script>
+	<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+	<script type="text/javascript" src="js/search.js"></script>
+
+	<script>
+		(function() {
+
+			var stateKey = 'spotify_auth_state';
+
+			/**
+			 * Obtains parameters from the hash of the URL
+			 * @return Object
+			 */
+			function getHashParams() {
+				var hashParams = {};
+				var e, r = /([^&;=]+)=?([^&;]*)/g,
+					q = window.location.hash.substring(1);
+				while (e = r.exec(q)) {
+					hashParams[e[1]] = decodeURIComponent(e[2]);
+				}
+				return hashParams;
+			}
+
+			/**
+			 * Generates a random string containing numbers and letters
+			 * @param  {number} length The length of the string
+			 * @return {string} The generated string
+			 */
+			function generateRandomString(length) {
+				var text = '';
+				var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+				for (var i = 0; i < length; i++) {
+					text += possible.charAt(Math.floor(Math.random() * possible.length));
+				}
+				return text;
+			};
+
+			/**
+			 * Find template and compile it
+			 */
+			var userProfileSource = document.getElementById('user-profile-template').innerHTML,
+				userProfileTemplate = Handlebars.compile(userProfileSource),
+				userProfilePlaceholder = document.getElementById('user-profile');
+
+
+			document.getElementById('login-button').addEventListener('click', function() {
+
+				var client_id = '5f8b2b4ae2064c3a95be4f3b486c8c26'; // Your client id
+				var redirect_uri = 'http://localhost:8888/'; // Your redirect uri
+
+				var state = generateRandomString(16);
+
+				localStorage.setItem(stateKey, state);
+				var scope = 'user-read-private user-read-email';
+
+				var url = 'https://accounts.spotify.com/authorize';
+				url += '?response_type=token';
+				url += '&client_id=' + encodeURIComponent(client_id);
+				url += '&scope=' + encodeURIComponent(scope);
+				url += '&redirect_uri=' + encodeURIComponent(redirect_uri);
+				url += '&state=' + encodeURIComponent(state);
+
+				window.location.assign(url);
+			}, false);
+
+
+			// get hash token from window.location url
+			var params = getHashParams();
+
+			var access_token = params.access_token,
+				state = params.state,
+				storedState = localStorage.getItem(stateKey);
+
+
+			//This is a sample of catching user data
+			if (access_token && (state == null || state !== storedState)) {
+				alert('There was an error during the authentication');
+			} else {
+				localStorage.removeItem(stateKey);
+				if (access_token) {
+					$.ajax({
+						url: 'https://api.spotify.com/v1/me',
+						headers: {
+							'Authorization': 'Bearer ' + access_token
+						},
+						success: function(response) {
+							userProfilePlaceholder.innerHTML = userProfileTemplate(response);
+							//console.log("User's info: " + response);
+							$('#login').hide();
+							$('#loggedin').show();
+						}
+					});
+				} else {
+					$('#login').show();
+					$('#loggedin').hide();
+				}
+
+			}
+
+
+			// find template and compile it
+			var templateSource = document.getElementById('results-template').innerHTML,
+				template = Handlebars.compile(templateSource),
+				resultsPlaceholder = document.getElementById('results');
+
+			// get album JSON
+			var fetchTracks = function(albumId, callback) {
+				$.ajax({
+					url: 'https://api.spotify.com/v1/albums/' + albumId,
+					headers: {
+						'Authorization': 'Bearer ' + access_token
+					},
+					success: function(response) {
+						//console.log(response);
+						callback(response);
+					}
+				});
+			};
+
+			//get Albums JSON
+			var searchAlbums = function(query) {
+				$.ajax({
+					url: 'https://api.spotify.com/v1/search',
+					headers: {
+						'Authorization': 'Bearer ' + access_token
+					},
+					data: {
+						q: query,
+						type: 'album'
+					},
+					success: function(response) {
+						console.log(response);
+						resultsPlaceholder.innerHTML = template(response);
+					}
+				});
+			};
+
+			// find template and compile it
+			var itemTemplateSource = document.getElementById('item-template').innerHTML,
+				itemTemplate = Handlebars.compile(itemTemplateSource),
+				itemsPlaceholder = document.getElementById('items');
+
+			results.addEventListener('click', function(e) {
+				var target = e.target;
+				fetchTracks(target.getAttribute('data-album-id'), function(data) {
+					console.log(data);
+					$('#items').show();
+					itemsPlaceholder.innerHTML = itemTemplate(data);//show high resolution image
+				});
+			});
+
+			items.addEventListener('click', function(e) {
+				$('#items').hide();
+			});
+
+			document.getElementById('search-form').addEventListener('submit', function(e) {
+				e.preventDefault();
+				searchAlbums(document.getElementById('query').value);
+			}, false);
+
+		})();
+
+	</script>
+
+
+</body>
+
+</html>

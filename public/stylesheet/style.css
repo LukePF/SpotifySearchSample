@@ -1,0 +1,125 @@
+body {
+	margin: 0 auto;
+	font-family: Tahoma;
+}
+
+#headline {
+	height: auto;
+}
+
+#titleline {
+	float: left;
+}
+
+.log-block {
+	margin: auto;
+	float: right;
+	position: relative;
+	top: 30px;
+}
+
+#login-button {
+	margin: auto;
+	background-color: #FFFFFF;
+	border: solid 1px green;
+	border-radius: 3px;
+	color: #000000;
+}
+
+#search {
+	margin: auto;
+	margin-left: 12px;
+	background-color: green;
+	border-radius: 3px;
+	color: #FFFFFF;
+	width: 70px;
+	display: inline-block;
+}
+
+#query {
+	display: inline-block;
+	width: calc( 100% - 90px);
+	min-width: 280px;
+}
+
+.cover {
+	width: 180px;
+	height: 180px;
+	margin: 0 auto;
+	size: 100% 100%; 
+	-moz-background-size: 100% 100%;
+	background-size: 100% 100%;
+	background-size: cover;
+}
+.lable {
+	width: 180px;
+	margin: 0 auto;
+}
+.lable lable {
+	font-weight: 700;
+}
+.lable span {
+	font-weight: 500;
+}
+#results {
+	margin-top: 12px;
+	background-color: #FFFACD;
+}
+.result-item {
+	height: 260px;
+	border-radius: 2px;
+}
+
+#items {
+	display: none;
+	z-index: 9998;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0,0,0,.5);
+}
+
+.item {
+	display: block;
+	z-index: 9999;
+	position: absolute;
+	top: 50px;
+	left: 50%;
+	margin-left: -320px;
+	width: 640px;
+	height: 640px;
+	background-size: cover;
+}
+
+
+/* Style sheets for mobile device. */
+
+@media only screen and (max-width: 500px) {
+	body {
+		min-width: 320px;
+	}
+	.log-block {
+		float: left;
+		position: relative;
+		top: 0;
+	}
+	#search {
+		margin: auto;
+		margin-top: 6px;
+		background-color: green;
+		border-radius: 3px;
+		color: #FFFFFF;
+		width: 70px;
+		display: inline-block;
+	}
+	.result-item {
+		width: 95%;
+	}
+	.item {
+	margin-left: -150px;
+	width: 300px;
+	height: 300px;
+}
+}
